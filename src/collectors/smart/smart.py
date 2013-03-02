@@ -69,21 +69,31 @@ class SmartCollector(diamond.collector.Collector):
 
                 for attr in attributes[7:]:
                     attribute = attr.split()
-                    if attribute[1] != "Unknown_Attribute":
-                        metric = "%s.%s" % (device, attribute[1])
-                    else:
-                        metric = "%s.%s" % (device, attribute[0])
+                    attr_name = attribute[1]
+                    if attr_name == "Unknown_Attribute":
+                        attr_name = attribute[0]
+
+                    metric_raw = "%s.%s.raw" % (device, attr_name)
+                    metric_norm = "%s.%s.normalized" % (device, attr_name)
 
                     # New metric? Store it
-                    if metric not in metrics:
-                        metrics[metric] = attribute[9]
+                    if metric_raw not in metrics:
+                        metrics[metric_raw] = attribute[9]
                     # Duplicate metric? Only store if it has a larger value
                     # This happens semi-often with the Temperature_Celsius
                     # attribute You will have a PASS/FAIL after the real temp,
                     # so only overwrite if The earlier one was a
                     # PASS/FAIL (0/1)
-                    elif metrics[metric] == 0 and attribute[9] > 0:
-                        metrics[metric] = attribute[9]
+                    elif metrics[metric_raw] == 0 and attribute[9] > 0:
+                        metrics[metric_raw] = attribute[9]
+                    else:
+                        continue
+
+                    # repeat for normalized values in the 4th column
+                    if metric_norm not in metrics:
+                        metrics[metric_norm] = attribute[3]
+                    elif metrics[metric_norm] == 0 and attribute[3] > 0:
+                        metrics[metric_norm] = attribute[3]
                     else:
                         continue
 
