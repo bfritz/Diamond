@@ -20,6 +20,7 @@ class SmartCollector(diamond.collector.Collector):
     def get_default_config_help(self):
         config_help = super(SmartCollector, self).get_default_config_help()
         config_help.update({
+            'device_dir': "device directory, e.g. /dev or /dev/disk/by-id",
             'devices': "device regex to collect stats on",
             'bin':         'The path to the smartctl binary',
             'use_sudo':    'Use sudo?',
@@ -37,6 +38,7 @@ class SmartCollector(diamond.collector.Collector):
             'bin': 'smartctl',
             'use_sudo':         False,
             'sudo_cmd':         '/usr/bin/sudo',
+            'device_dir': '/dev',
             'devices': '^disk[0-9]$|^sd[a-z]$|^hd[a-z]$',
             'method': 'Threaded'
         })
@@ -46,12 +48,13 @@ class SmartCollector(diamond.collector.Collector):
         """
         Collect and publish S.M.A.R.T. attributes
         """
+        device_dir = self.config['device_dir']
         devices = re.compile(self.config['devices'])
 
-        for device in os.listdir('/dev'):
+        for device in os.listdir(device_dir):
             if devices.match(device):
 
-                command = [self.config['bin'], "-A", os.path.join('/dev',
+                command = [self.config['bin'], "-A", os.path.join(device_dir,
                                                                   device)]
 
                 if self.config['use_sudo']:
